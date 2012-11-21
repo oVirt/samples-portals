@@ -1,0 +1,27 @@
+This is a Python sample web-portal that uses REST API to view and run VMs from oVirt Engine.
+This project run a local web server which can be configure via the ovirt.conf file.
+
+o Running the web server:
+  ./Broker.py
+
+o conneting to the server:
+  http://localhost:8000/
+
+o classes:
+  Broker
+      main class, run the web server
+
+  RestClient
+      dispatch HTTP GET and POST RESTful methods
+
+  RestCommand:
+      parse the underline xml that return from RestCommand
+
+  WebHandler
+      implementation of web server
+
+o configuration file:
+  ovirt.conf:
+    BaseUrl: the url where the Engine is running
+    HostName: the local for the web server to listen to
+    PortNumber: the local port number for the server to listen to
