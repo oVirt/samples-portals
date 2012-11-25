@@ -146,7 +146,7 @@ class WebHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         <tr>
             <th>VM Name</th>
             <th>Status</th>
-            <th>Dispaly</th>
+            <th>Display</th>
             <th>Start</th>
             <th>Stop</th>
             <th>Connect</th>
