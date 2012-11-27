@@ -61,7 +61,7 @@ class WebHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         if res['status'] == 'failed':
             html = '''<html><body>
-            <p style='color:red'>Action faild!</p>
+            <p style='color:red'>Action failed!</p>
             <br/>Reason: %s
             <br/>Details: %s
             <br/>
