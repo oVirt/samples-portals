@@ -149,7 +149,7 @@ class WebHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             <th>Display</th>
             <th>Start</th>
             <th>Stop</th>
-            <th>Connect</th>
+            <th>Console</th>
         </tr>
         '''
 
@@ -166,7 +166,7 @@ class WebHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
             startbtn = "<button %s onclick=javascript:location.href='action?vmid=%s&action=start' type='button'>Start</button>" % (startable, vm['vmid'])
             stopbtn = "<button %s onclick=javascript:location.href='action?vmid=%s&action=stop' type='button'>Stop</button>" % (stopable, vm['vmid'])
-            connectbtn = "<button %s onclick=javascript:location.href='action?vmid=%s&action=ticket' type='button'>Connect</button>" % (connectable, vm['vmid'])
+            connectbtn = "<button %s onclick=javascript:location.href='action?vmid=%s&action=ticket' type='button'>Console</button>" % (connectable, vm['vmid'])
 
             html = html + '''       <tr>
             <td>%s</td>

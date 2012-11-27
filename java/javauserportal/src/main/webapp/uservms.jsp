@@ -23,7 +23,7 @@
             <th>Display</th>
             <th>Start</th>
             <th>Stop</th>
-            <th>Launch</th>
+            <th>Console</th>
         </tr>
         <%
             for (VmDetails vm: command.getVms()) {
@@ -34,7 +34,7 @@
             <td><%= vm.getDisplay() %></td>
             <td><button %s onclick=javascript:location.href='action.jsp?vmid=<%= vm.getId() %>&action=start' type='button'>Start</button></td>
             <td><button %s onclick=javascript:location.href='action.jsp?vmid=<%= vm.getId() %>&action=stop' type='button'>Stop</button></td>
-            <td><button %s onclick=javascript:location.href='action.jsp?vmid=<%= vm.getId() %>&action=ticket' type='button'>Launch</button></td>
+            <td><button %s onclick=javascript:location.href='action.jsp?vmid=<%= vm.getId() %>&action=ticket' type='button'>Console</button></td>
         </tr>
         <%
             }
