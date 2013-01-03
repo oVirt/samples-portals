@@ -1,9 +1,9 @@
-import RestCommand
+import OVirtDispatcher
 
 import cgi
 import BaseHTTPServer
 
-restCommand = None
+dispatcher = None
 
 '''
 WebHandler: simple Web Server
@@ -18,6 +18,8 @@ class WebHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if self.path == '/':
             form = cgi.FieldStorage(fp=self.rfile, headers=self.headers, environ={'REQUEST_METHOD':'POST', 'CONTENT_TYPE':self.headers['Content-Type'], })
             self._login_method(form)
+        elif self.path == '/uservms':
+            self._uservms_method()
         else:
             self._page_error()
 
@@ -32,6 +34,8 @@ class WebHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         if p == '/':
             self._login_method()
+        elif p == '/uservms':
+            self._uservms_method()
         elif p == '/action':
             self._action_method(params)
         else:
@@ -45,9 +49,17 @@ class WebHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.wfile.write("<body><p>Page not found %s</p>" % self.path)
         self.wfile.write("</body></html>")
 
+    def _failed_action(self, reason, detail):
+        return '''<html><body>
+        <p style='color:red'>Action failed!</p>
+        <br/>Reason: %s
+        <br/>Details: %s
+        <br/>
+        <button onclick=javascript:location.href='/uservms'>Back</button>
+        </body></html>''' % (reason, detail)
 
     def _action_method(self, params):
-        global restCommand
+        global dispatcher
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
@@ -56,37 +68,44 @@ class WebHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         vmid = form['vmid'][0]
         action = form['action'][0]
+        success = False
 
-        res = restCommand.runAction(vmid, action)
+        if action == 'start':
+            success, reason, detail = dispatcher.startVm(vmid)
+            if not success:
+                html = self._failed_action(reason, detail)
 
-        if res['status'] == 'failed':
-            html = '''<html><body>
-            <p style='color:red'>Action failed!</p>
-            <br/>Reason: %s
-            <br/>Details: %s
-            <br/>
-            <button onclick=javascript:history.back()>Back</button>
-            </body></html>''' % (res['reason'], res['detail'])
+        elif action == 'stop':
+            success, reason, detail = dispatcher.stopVm(vmid)
+            if not success:
+                html = self._failed_action(reason, detail)
 
         elif action == 'ticket':
-            vm = restCommand.getVmByVmId(vmid)
+            try:
+                value, expiry = dispatcher.ticketVm(vmid)
 
-            if self.headers['user-agent'].lower().find('windows') >= 0:
-                html = self._ticketIE(vm, res)
-            else:
-                html = self._ticketFirefox(vm, res)
+                vm = dispatcher.getVmById(vmid)
+                display = vm.get_display()
 
-        else:
+                if self.headers['user-agent'].lower().find('windows') >= 0:
+                    html = self._ticketIE(display.get_address(), display.get_port(), value)
+                else:
+                    html = self._ticketFirefox(display.get_address(), display.get_port(), value)
+            except Exception as e:
+                reason, detail = e.args
+                html = self._failed_action(reason, detail)
+
+        if success:
             html = '''<html><body>
             VM '%s' successfully
             <br/>
-            <button onclick=javascript:history.back()>Back</button>
+            <button onclick=javascript:location.href='/uservms'>Back</button>
             </body></html>
             ''' % action
 
         self.wfile.write(html)
 
-    def _ticketIE(self, vm, res):
+    def _ticketIE(self, host, port, password):
         html = '''<html>
    <script>
        function onConnect() {
@@ -97,17 +116,20 @@ class WebHandler(BaseHTTPServer.BaseHTTPRequestHandler):
        }
    </script>
 <body>
+    VMs ticket set:
+    <br/>
     <OBJECT style='visibility: hidden' codebase='SpiceX.cab#version=1,0,0,1' ID='spice' CLASSID='CLSID:ACD6D89C-938D-49B4-8E81-DDBD13F4B48A'>
     </OBJECT>
     <form>
         <input type=button onclick='javascript:onConnect();' value='Connect'/>
     </form>
+    <button onclick=javascript:location.href='/uservms'>Back</button>
 </body>
-</html>''' % (vm['address'], vm['port'], res['value'])
+</html>''' % (host, port, password)
 
         return html
 
-    def _ticketFirefox(self, vm, res):
+    def _ticketFirefox(self, host, port, password):
         html = '''<html>
    <script>
        function onConnect() {
@@ -119,24 +141,27 @@ class WebHandler(BaseHTTPServer.BaseHTTPRequestHandler):
        }
    </script>
 <body>
+    VMs ticket set:
+    <br/>
     <embed id='spice' type="application/x-spice" width=0 height=0><br>
     <form>
         <input type=button value='Connent' onclick='onConnect()'/>
     </form>
+    <button onclick=javascript:location.href='/uservms'>Back</button>
 </body>
-</html>''' % (vm['address'], vm['port'], res['value'])
+</html>''' % (host, port, password)
 
         return html
 
 
     def _uservms_method(self):
-        #form = cgi.FieldStorage(fp=self.rfile, headers=self.headers, environ={'REQUEST_METHOD':'POST', 'CONTENT_TYPE':self.headers['Content-Type'], })
+        global dispatcher
 
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
 
-        vms = restCommand.getUserVms()
+        vms = dispatcher.getUserVms()
 
         # render the html
         html = '''<html>
@@ -154,19 +179,9 @@ class WebHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         '''
 
         for vm in vms:
-            startable = ''
-            if not vm['startable']:
-                startable = "disabled='disabled'"
-            stopable = ''
-            if not vm['stopable']:
-                stopable = "disabled='disabled'"
-            connectable = ''
-            if not vm['connectable'] or vm['display'] != 'spice':
-                connectable = "disabled='disabled'"
-
-            startbtn = "<button %s onclick=javascript:location.href='action?vmid=%s&action=start' type='button'>Start</button>" % (startable, vm['vmid'])
-            stopbtn = "<button %s onclick=javascript:location.href='action?vmid=%s&action=stop' type='button'>Stop</button>" % (stopable, vm['vmid'])
-            connectbtn = "<button %s onclick=javascript:location.href='action?vmid=%s&action=ticket' type='button'>Console</button>" % (connectable, vm['vmid'])
+            startbtn = "<button onclick=javascript:location.href='action?vmid=%s&action=start' type='button'>Start</button>" % (vm.get_id())
+            stopbtn = "<button onclick=javascript:location.href='action?vmid=%s&action=stop' type='button'>Stop</button>" % (vm.get_id())
+            connectbtn = "<button onclick=javascript:location.href='action?vmid=%s&action=ticket' type='button'>Console</button>" % (vm.get_id())
 
             html = html + '''       <tr>
             <td>%s</td>
@@ -175,22 +190,32 @@ class WebHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             <td>%s</td>
             <td>%s</td>
             <td>%s</td>
-        </tr>''' % (vm['name'], vm['status'], vm['display'], startbtn, stopbtn, connectbtn)
+        </tr> ''' % (vm.get_name(), vm.get_status().get_state(), vm.get_display().get_type(), startbtn, stopbtn, connectbtn)
 
-        html = html + '''   </table></center></body></html>'''
+        html = html + '''
+        <tr>
+            <td><button onclick=javascript:location.href='/'>Logout</button></td>
+        </tr>
+        </table></center></body></html>'''
         self.wfile.write(html)
+
+    def _redirectTo(self, url, timeout=0):
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.end_headers()
+        self.wfile.write("""<html><head><meta HTTP-EQUIV="REFRESH" content="%i; url=%s"/></head></html>""" % (timeout, url))
 
 
     def _login_method(self, form={}):
-        global restCommand
+        global dispatcher
         message = ''
         if form.has_key("username") and form.has_key('password'):
-            restCommand = RestCommand.RestCommand()
-            if restCommand.login(form.getvalue("username"), form.getvalue("password")):
-                self._uservms_method()
+            dispatcher = OVirtDispatcher.OVirtDispatcher()
+            loggedin, message = dispatcher.login(form.getvalue("username"), form.getvalue("password"))
+
+            if loggedin:
+                self._redirectTo('/uservms')
                 return
-            else:
-                message = 'Login Error'
 
         self.send_response(200)
         self.send_header("Content-type", "text/html")

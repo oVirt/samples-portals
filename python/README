@@ -1,3 +1,6 @@
+Install the sdk:
+# yum install ovirt-engine-sdk
+
 This is a Python sample web-portal that uses REST API to view and run VMs from oVirt Engine.
 This project run a local web server which can be configure via the ovirt.conf file.
 
@@ -9,16 +12,13 @@ o conneting to the server:
 
 o classes:
   Broker
-      main class, run the web server
-
-  RestClient
-      dispatch HTTP GET and POST RESTful methods
-
-  RestCommand:
-      parse the underline xml that return from RestCommand
+    main class, run the web server
 
   WebHandler
-      implementation of web server
+    implementation of web server
+
+  OVirtDispatcher
+    oVirt SDK wrapper
 
 o configuration file:
   ovirt.conf:
