@@ -9,7 +9,7 @@ public class OVirtProperties {
 
     public OVirtProperties() {
         Properties prop = new Properties();
-        InputStream in = getClass().getResourceAsStream("ovirt.properties");
+        InputStream in = getClass().getResourceAsStream("/ovirt.properties");
         try {
             prop.load(in);
             this.baseUrl = prop.getProperty("BaseUrl");

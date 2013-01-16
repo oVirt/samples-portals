@@ -1,29 +1,25 @@
+<%@page import="org.ovirt.samples.portals.javauserportal.OVirtSDKWrapper"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@page import="org.ovirt.samples.portals.javauserportal.OVirtProperties"%>
-<%@page import="org.ovirt.samples.portals.javauserportal.RestCommand"%>
-<%@page import="org.ovirt.samples.portals.javauserportal.LoginRestCommand"%>
-<%@page import="org.ovirt.samples.portals.javauserportal.RestClient"%>
 <html>
 <body>
     <form name="input" action="index.jsp" method="post">
         <%
-        String username = "";
         String message = "";
+        session.setAttribute("wrapper", null);
 
         if (request.getParameter("username") != null && request.getParameter("password") != null) {
-            session.removeAttribute("cookie");
             OVirtProperties prop = new OVirtProperties();
             session.setAttribute("baseUrl", prop.getBaseUrl());
+            OVirtSDKWrapper wrapper = new OVirtSDKWrapper();
+            session.setAttribute("wrapper", wrapper);
 
-            LoginRestCommand command = new LoginRestCommand(prop.getBaseUrl() + "/api", request.getParameter("username"), request.getParameter("password"));
-            RestClient client = new RestClient();
-            client.doGetCommand(command);
-            if (command.isLoggedin()) {
-                session.setAttribute("cookie", command.getCookie());
+            wrapper.login(prop.getBaseUrl() + "/api", request.getParameter("username"), request.getParameter("password"));
+            if (wrapper.isLoggedin()) {
                 response.sendRedirect("uservms.jsp");
             }
             else {
-                message = "Login Error<br/>(" + command.getMessage() + ")";
+                message = "Login Error<br/>(" + wrapper.getMessage() + ")";
             }
         }
 

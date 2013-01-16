@@ -1,1 +1,9 @@
-...
+Edit the file "./src/main/java/org/ovirt/samples/portals/javauserportal/ovirt.properties" with the proper oVirt base Url
+
+Compile the project:
+$ mvn clean install
+
+Deploy the war (in this case JBoss 7.1):
+$ cp target/javauserportal.war /usr/local/jboss-as-8.1.1.Final/standalone/deployments/
+
+
