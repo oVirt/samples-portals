@@ -1,0 +1,11 @@
+Perquisites:
+Project depend on sinatra web server and rbovirt, you need to add this gems:
+$ sudo gem install sinatra rbovirt
+
+Configure the server host and port as well as the oVirt url in:
+ovirt.conf.yml configuration file
+
+To run the server:
+$ ruby -rubygems webhandler.rb
+or
+$ ./webhandler.rb
