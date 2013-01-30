@@ -1,0 +1,24 @@
+<html>
+<body>
+<center><br/><br/>
+
+  <form name="input" action="/" method="post">
+    <table>
+      <tr>
+        <td>User name:</td>
+        <td><input type="text" name="username" value=""/></td>
+      <tr>
+        <td>Password:</td>
+        <td><input type="password" name="password" value=""/></td>
+      <tr>
+        <td/>
+        <td align="right"><input type="submit" value="Login"/></td>
+      </tr>
+      <tr>
+        <td colspan="2" style="color:red"><%= @message %></td>
+      </tr>
+    </table>
+  </form>
+</center>
+</body>
+</html>

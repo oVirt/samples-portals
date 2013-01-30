@@ -7,16 +7,18 @@ Bundler.require
 
 require 'yaml'
 
-$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '.' ))
+APP_ROOT = File.dirname(__FILE__)
+$LOAD_PATH.unshift(File.join(APP_ROOT, '.' ))
 require 'ovirtwrapper'
 
 ## --------------------------------------------
 enable :sessions
 
 configure do
-    conf = YAML.load_file('ovirt.conf.yml')
+    conf = YAML.load_file("#{APP_ROOT}/ovirt.conf.yml")
     set :bind, conf['server']['host']
     set :port, conf['server']['port']
+    set :views, APP_ROOT + "/views"
 end
 
 get '/vms' do
@@ -46,79 +48,24 @@ def logout
 end
 
 def login
-    message = ''
+    @message = ''
     wrapper = OVirtWrapper.new
     if params['username'] != nil and params['password'] != nil
         if wrapper.login(params['username'], params['password'])
             session[:wrapper] = wrapper
             redirect to('/vms')
         else
-            message = wrapper.getMessage
+            @message = wrapper.getMessage
         end
     end
-
-    '<html>
-    <body>
-    <center><br/><br/>
-    <form name="input" action="/" method="post">
-            <table>
-                <tr>
-                    <td>User name:</td>
-                    <td><input type="text" name="username" value=""/></td>
-                <tr>
-                    <td>Password:</td>
-                    <td><input type="password" name="password" value=""/></td>
-                <tr>
-                    <td/>
-                    <td align="right"><input type="submit" value="Login"/></td>
-                </tr>
-                <tr>
-                    <td colspan="2" style="color:red">%s</td>
-                </tr>
-        </form>
-    </body>
-    </html>' % message
+    erb :'login.html'
 end
 
 def doVms
     wrapper = session[:wrapper]
-    if wrapper == nil
-        redirect to '/'
-    end
-
-    html = '<html>
-    <body>
-        <center><br/><br/>
-        <table cellpadding="5" style="border-width: 1px; border-spacing: 2px; border-style: outset; border-color: gray; border-collapse: separate; background-color: white;">
-            <tr>
-                <th>VM Name</th>
-                <th>Status</th>
-                <th>Display</th>
-                <th>Start</th>
-                <th>Stop</th>
-                <th>Console</th>
-            </tr>'
-    for i in 0...wrapper.vms.length
-        vm = wrapper.vms[i]
-        startbtn = "<button onclick=javascript:location.href='action?vmid=%s&action=start' type='button'>Start</button>" % vm.id
-        stopbtn = "<button onclick=javascript:location.href='action?vmid=%s&action=stop' type='button'>Stop</button>" % vm.id
-        connectbtn = "<button onclick=javascript:location.href='action?vmid=%s&action=ticket' type='button'>Console</button>" % vm.id
-        html = html + '<tr>
-        <td>%s</td>
-        <td>%s</td>
-        <td>%s</td>
-        <td>%s</td>
-        <td>%s</td>
-        <td>%s</td>
-        </tr> ' % [vm.name, vm.status, vm.display[:type], startbtn, stopbtn, connectbtn]
-    end
-
-    html += '<tr>
-        <td><button onclick=javascript:location.href="/logout">Logout</button></td>
-    </tr>
-    </table></center></body></html>'
-
-    html
+    redirect to '/' unless wrapper
+    @vms = wrapper.vms
+    erb :'vms.html'
 end
 
 def doAction
