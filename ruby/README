@@ -1,11 +1,15 @@
 Perquisites:
-Project depend on sinatra web server and rbovirt, you need to add this gems:
-$ sudo gem install sinatra rbovirt
+Project depend on sinatra web server and rbovirt, you need to add this commands:
+$ sudo yum install ruby-devel rubygems
+$ gem install sinatra rbovirt nokogiri
+$ bundle install
+
+Note:
+if you have problems with development resources try to add that packages:
+$ yum install rubygems gcc-c++ libxml libxslt libxslt-devel
 
 Configure the server host and port as well as the oVirt url in:
 ovirt.conf.yml configuration file
 
 To run the server:
-$ ruby -rubygems webhandler.rb
-or
 $ ./webhandler.rb

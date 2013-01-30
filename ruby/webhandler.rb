@@ -1,6 +1,10 @@
-#!/usr/bin/ruby -rubygems
+#!/usr/bin/env ruby
 
-require 'sinatra'
+require 'rubygems'
+require 'bundler'
+
+Bundler.require
+
 require 'yaml'
 
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '.' ))
