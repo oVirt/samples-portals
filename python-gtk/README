@@ -1,0 +1,22 @@
+ovirt-userportal-gtk
+====================
+
+Dependencies:
+
+ $ sudo yum install spice-gtk-tools
+
+
+Run:
+
+ ./userportalgtk.py
+
+
+Login examples:
+
+ Username: user@domain
+ Password: s3cr3t
+ Server: https://ovirt-engine.example.com
+
+ Username: user@domain
+ Password: s3cr3t
+ Server: http://ovirt-engine.example.com:8080/api
