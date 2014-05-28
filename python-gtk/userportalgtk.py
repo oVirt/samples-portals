@@ -111,9 +111,11 @@ class Client:
 
             if "rhel" in os:
                 self._img_So.set_from_file(self._dir + "/images/rhel.png")
+            elif "sles" in os:
+                self._img_So.set_from_file(self._dir + "/images/sles.png")
             elif "ubuntu" in os:
                 self._img_So.set_from_file(self._dir + "/images/ubuntu.png")
-            elif "other" in os:
+            elif "other_linux" in os:
                 self._img_So.set_from_file(self._dir + "/images/linux.png")
             elif "windows" in os:
                 self._img_So.set_from_file(self._dir + "/images/win.png")
