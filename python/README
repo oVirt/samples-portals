@@ -25,3 +25,8 @@ o configuration file:
     BaseUrl: the url where the Engine is running
     HostName: the local for the web server to listen to
     PortNumber: the local port number for the server to listen to
+
+o general notes:
+   spice-xpi need to be installed for firefox
+   the user that login need to have the right permissions (such as UserRole) on a VM,
+   in order to see VMs in the uservms page
